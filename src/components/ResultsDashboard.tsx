@@ -27,43 +27,51 @@ import DocumentSummary from "./DocumentSummary";
 
 interface Document {
   id: string;
-  name: string;
+  title?: string;
+  originalFileName: string;
   summary: string;
   fullText: string;
   metadata: {
     tags: string[];
-    keyPoints: string[];
-    entities: string[];
+    keyInsights: string[];
+    entities: Array<{ name: string; type: string }>;
   };
   highlights: {
     text: string;
     importance: "high" | "medium" | "low";
   }[];
+  processedDate: string;
 }
 
 interface ResultsDashboardProps {
   documents?: Document[];
   onExport?: (documentId: string, format: "pdf" | "docx" | "txt") => void;
   onUpdatePrompt?: (promptType: string, promptText: string) => void;
+  onUploadMore?: () => void;
 }
 
 const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   documents = [
     {
       id: "1",
-      name: "Sample Document.pdf",
+      title: "Sample Document",
+      originalFileName: "Sample Document.pdf",
       summary:
         "This is a sample document summary that highlights the key points from the document. It provides a concise overview of the main topics covered.",
       fullText:
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, vitae aliquam nisl nunc vitae nisl. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, vitae aliquam nisl nunc vitae nisl.",
       metadata: {
         tags: ["Contract", "Legal", "Agreement"],
-        keyPoints: [
+        keyInsights: [
           "Payment terms defined in section 3.2",
           "Termination clause on page 5",
           "Non-compete for 24 months",
         ],
-        entities: ["Acme Corp", "John Doe", "Jane Smith"],
+        entities: [
+          { name: "Acme Corp", type: "Organization" },
+          { name: "John Doe", type: "Person" },
+          { name: "Jane Smith", type: "Person" },
+        ],
       },
       highlights: [
         {
@@ -79,22 +87,28 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           importance: "low",
         },
       ],
+      processedDate: "2023-06-15T14:30:00Z",
     },
     {
       id: "2",
-      name: "Business Proposal.docx",
+      title: "Business Proposal",
+      originalFileName: "Business Proposal.docx",
       summary:
         "A business proposal for expanding operations into the European market, with financial projections and implementation timeline.",
       fullText:
         "Detailed business proposal text would appear here with multiple paragraphs of content...",
       metadata: {
         tags: ["Business", "Proposal", "Expansion"],
-        keyPoints: [
+        keyInsights: [
           "€2.5M initial investment",
           "18-month timeline",
           "Focus on Germany and France",
         ],
-        entities: ["Global Enterprises", "European Union", "Frankfurt Office"],
+        entities: [
+          { name: "Global Enterprises", type: "Organization" },
+          { name: "European Union", type: "Organization" },
+          { name: "Frankfurt Office", type: "Location" },
+        ],
       },
       highlights: [
         {
@@ -107,10 +121,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         },
         { text: "Regulatory approval expected by Q3", importance: "medium" },
       ],
+      processedDate: "2023-06-10T09:15:00Z",
     },
   ],
   onExport = () => {},
   onUpdatePrompt = () => {},
+  onUploadMore = () => {},
 }) => {
   const [activeDocument, setActiveDocument] = useState<string>(
     documents[0]?.id || "",
@@ -156,6 +172,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           <p className="text-gray-500 text-center mt-2">
             Upload documents to see processing results here.
           </p>
+          <Button onClick={onUploadMore} className="mt-6">
+            Upload Documents
+          </Button>
         </CardContent>
       </Card>
     );
@@ -247,7 +266,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   <p
                     className={`text-sm font-medium truncate ${doc.id === activeDocument ? "text-blue-700" : "text-gray-700"}`}
                   >
-                    {doc.name}
+                    {doc.originalFileName || doc.title}
                   </p>
                 </div>
               </div>
@@ -261,7 +280,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <>
               <div className="mb-6 flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-800">
-                  {currentDocument.name}
+                  {currentDocument.title || currentDocument.originalFileName}
                 </h2>
                 <div className="flex gap-2">
                   <Button
@@ -331,6 +350,16 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 <TabsContent value="metadata" className="space-y-4">
                   <DocumentSummary document={currentDocument} view="metadata" />
                 </TabsContent>
+
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={onUploadMore}
+                    className="mr-2"
+                  >
+                    Upload More Documents
+                  </Button>
+                </div>
               </Tabs>
             </>
           )}
