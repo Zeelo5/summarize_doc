@@ -139,17 +139,20 @@ const DocumentUploader = ({
         clearInterval(interval);
 
         // Update file status to success
-        setFiles((prev) =>
-          prev.map((f) =>
+        setFiles((prev) => {
+          const updatedFiles = prev.map((f) =>
             f.id === file.id ? { ...f, progress, status: "success" } : f,
-          ),
-        );
+          );
 
-        // Check if all files are uploaded
-        const allUploaded = files.every((f) => f.status === "success");
-        if (allUploaded) {
-          onUploadComplete(files);
-        }
+          // Check if all files are uploaded
+          const allUploaded = updatedFiles.every((f) => f.status === "success");
+          if (allUploaded) {
+            // Use setTimeout to ensure state is updated before callback
+            setTimeout(() => onUploadComplete(updatedFiles), 0);
+          }
+
+          return updatedFiles;
+        });
       } else {
         // Update progress
         setFiles((prev) =>
@@ -222,10 +225,20 @@ const DocumentUploader = ({
                   Uploaded Documents ({files.length}/{maxFiles})
                 </h4>
                 <Button
-                  onClick={() => onSummarize(files)}
+                  onClick={() => {
+                    // Only pass files that have been successfully uploaded
+                    const successfulFiles = files.filter(
+                      (file) => file.status === "success",
+                    );
+                    if (successfulFiles.length > 0) {
+                      onSummarize(successfulFiles);
+                    }
+                  }}
                   disabled={
                     isProcessing ||
-                    files.some((file) => file.status === "uploading")
+                    files.some((file) => file.status === "uploading") ||
+                    files.filter((file) => file.status === "success").length ===
+                      0
                   }
                   className="flex items-center gap-2"
                 >

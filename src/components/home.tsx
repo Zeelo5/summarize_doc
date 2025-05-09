@@ -183,10 +183,12 @@ const Home = () => {
                     console.log("Files uploaded:", files);
                   }}
                   onSummarize={(files) => {
+                    console.log("Home component: Summarizing files", files);
                     // Process the uploaded files
-                    handleDocumentUpload(files);
-                    // Switch to results tab
-                    setActiveTab("results");
+                    if (files && files.length > 0) {
+                      handleDocumentUpload(files);
+                      // Switch to results tab will happen in handleDocumentUpload
+                    }
                   }}
                   isProcessing={isProcessing}
                 />
